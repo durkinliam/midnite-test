@@ -2,7 +2,10 @@ package com.durkinliam.midnitetest.alert
 
 import com.durkinliam.midnitetest.alert.AlertUtilities.isMoreThanThreshold
 import com.durkinliam.midnitetest.LocalCache
-import com.durkinliam.midnitetest.domain.AlertCode
+import com.durkinliam.midnitetest.alert.AlertUtilities.ONE_HUNDRED
+import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
+import com.durkinliam.midnitetest.domain.AlertCode.THREE_CONSECUTIVE_WITHDRAWALS
+import com.durkinliam.midnitetest.domain.AlertCode.WITHDRAWAL_OVER_ONE_HUNDRED
 import com.durkinliam.midnitetest.domain.CustomerEvent
 import com.durkinliam.midnitetest.domain.EventRequestBody
 import com.durkinliam.midnitetest.domain.EventResponseBody
@@ -18,14 +21,14 @@ class WithdrawalAlertService(
         val userId = eventRequestBody.userId
         val customerEvents = cache.localCache[userId]!!.customerEvents.sortedBy { it.timestamp }
 
-        val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(AlertUtilities.ONE_HUNDRED)
+        val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(ONE_HUNDRED)
 
-        if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return AlertUtilities.noAlertResponse(userId)
+        if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return noAlertResponse(userId)
 
         val areLastThreeEventsAllWithdrawals = customerEvents.areLastThreeEventsAllWithdrawals()
 
-        if (doesWithdrawalExceedThreshold) alertCodes.add(AlertCode.WITHDRAWAL_OVER_ONE_HUNDRED.code)
-        if (areLastThreeEventsAllWithdrawals) alertCodes.add(AlertCode.THREE_CONSECUTIVE_WITHDRAWALS.code)
+        if (doesWithdrawalExceedThreshold) alertCodes.add(WITHDRAWAL_OVER_ONE_HUNDRED.code)
+        if (areLastThreeEventsAllWithdrawals) alertCodes.add(THREE_CONSECUTIVE_WITHDRAWALS.code)
 
         return EventResponseBody(
             alert = true,
