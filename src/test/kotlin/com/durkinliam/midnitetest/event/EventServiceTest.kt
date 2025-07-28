@@ -89,7 +89,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount,
+                                amount = testEventRequestBody.amount.toDouble(),
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
                             )
                         )
@@ -112,7 +112,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount + 1.00,
+                                amount = testEventRequestBody.amount.toDouble() + 1.00,
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis
                             )
                         )
@@ -136,7 +136,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount,
+                                amount = testEventRequestBody.amount.toDouble(),
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
                             )
                         )
@@ -239,7 +239,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount,
+                                amount = testEventRequestBody.amount.toDouble(),
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
                             )
                         )
@@ -262,7 +262,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount + 1.00,
+                                amount = testEventRequestBody.amount.toDouble() + 1.00,
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis
                             )
                         )
@@ -286,7 +286,7 @@ class EventServiceTest {
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount,
+                                amount = testEventRequestBody.amount.toDouble(),
                                 timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
                             )
                         )

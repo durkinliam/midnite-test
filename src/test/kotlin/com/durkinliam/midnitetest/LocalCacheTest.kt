@@ -40,7 +40,7 @@ class LocalCacheTest {
             customerEvents = setOf(
                 CustomerEvent(
                     type = DEPOSIT,
-                    amount = "10.0",
+                    amount = 10.00,
                     timestamp = 1
                 )
             )
@@ -54,7 +54,7 @@ class LocalCacheTest {
         assertEquals(
             CustomerEvent(
                 type = DEPOSIT,
-                amount = "100.0",
+                amount = 100.00,
                 timestamp = eventRequestBody.timeRequestReceivedInMillis
             ),
             customerRecord.customerEvents.maxByOrNull { it.timestamp }!!

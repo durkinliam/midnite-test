@@ -18,17 +18,17 @@ class AlertUtilitiesTest {
         val response = noAlertResponse(userId)
 
         assertFalse(response.alert)
-        assertTrue(response.alertCodes.isEmpty())
-        assertEquals(userId, response.userId)
+        assertTrue(response.alert_codes.isEmpty())
+        assertEquals(userId, response.user_id)
     }
 
     @Test
     fun accumulationOverATimePeriodShouldReturnCorrectSumForEventsWithinTheTimePeriodAndIgnoresEventsOutsideOfTheTimePeriod() {
         val events = listOf(
-            CustomerEvent(timestamp = 10_000, amount = "100.00", type = DEPOSIT),
-            CustomerEvent(timestamp = 13_000, amount = "30.00", type = DEPOSIT),
-            CustomerEvent(timestamp = 18_000, amount = "20.00", type = DEPOSIT),
-            CustomerEvent(timestamp = 21_000, amount = "50.00", type = DEPOSIT),
+            CustomerEvent(timestamp = 10_000, amount = 100.00, type = DEPOSIT),
+            CustomerEvent(timestamp = 13_000, amount = 30.00, type = DEPOSIT),
+            CustomerEvent(timestamp = 18_000, amount = 20.00, type = DEPOSIT),
+            CustomerEvent(timestamp = 21_000, amount = 50.00, type = DEPOSIT),
         )
         val result = events.accumulationOverATimePeriod(10_000)
 

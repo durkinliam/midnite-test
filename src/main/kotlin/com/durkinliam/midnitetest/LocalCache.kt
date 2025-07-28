@@ -51,7 +51,7 @@ class LocalCache {
 
     private fun EventRequestBody.toNewCustomerEvent() = CustomerEvent(
         type = this.type,
-        amount = this.amount,
+        amount = this.amount.toDouble(),
         timestamp = this.timeRequestReceivedInMillis,
     )
 }

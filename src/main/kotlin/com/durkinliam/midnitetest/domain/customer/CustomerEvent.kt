@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CustomerEvent(
     val type: EventType,
-    val amount: String,
+    val amount: Double,
     val timestamp: Long,
 )

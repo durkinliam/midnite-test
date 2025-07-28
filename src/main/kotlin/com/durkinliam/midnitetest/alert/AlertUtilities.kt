@@ -10,15 +10,15 @@ object AlertUtilities {
 
     fun noAlertResponse(userId: Long) = SuccessfulEventAlertResponse(
         alert = false,
-        alertCodes = emptySet(),
-        userId = userId
+        alert_codes = emptySet(),
+        user_id = userId
     )
 
     fun List<CustomerEvent>.accumulationOverATimePeriod(
         timePeriod: Long
     ) = this
         .filter { it.timestamp <= timePeriod }
-        .sumOf { it.amount.toDouble() }
+        .sumOf { it.amount }
 
     fun Double.isMoreThanThreshold(threshold: Double) = this > threshold
 }

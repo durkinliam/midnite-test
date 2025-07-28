@@ -41,12 +41,12 @@ class DepositAlertService(
 
         return SuccessfulEventAlertResponse(
             alert = alertCodes.isNotEmpty(),
-            alertCodes = alertCodes.toSet(),
-            userId = userId
+            alert_codes = alertCodes.toSet(),
+            user_id = userId
         )
     }
 
     private fun List<CustomerEvent>.areLastThreeDepositsIncreasing() =
-        this[0].amount.toDouble() < this[1].amount.toDouble() &&
-                this[1].amount.toDouble() < this[2].amount.toDouble()
+        this[0].amount < this[1].amount &&
+                this[1].amount < this[2].amount
 }

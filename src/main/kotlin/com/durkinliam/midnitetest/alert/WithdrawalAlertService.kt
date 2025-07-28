@@ -30,8 +30,8 @@ class WithdrawalAlertService(
 
         return SuccessfulEventAlertResponse(
             alert = alertCodes.isNotEmpty(),
-            alertCodes = alertCodes.toSet(),
-            userId = userId
+            alert_codes = alertCodes.toSet(),
+            user_id = userId
         )
     }
 
