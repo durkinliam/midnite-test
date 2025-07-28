@@ -1,5 +1,6 @@
-package com.durkinliam.midnitetest.domain
+package com.durkinliam.midnitetest.domain.customer
 
+import com.durkinliam.midnitetest.domain.event.request.EventType
 import kotlinx.serialization.Serializable
 
 @Serializable

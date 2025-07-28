@@ -1,8 +1,8 @@
 package com.durkinliam.midnitetest
 
-import com.durkinliam.midnitetest.domain.CustomerEvent
-import com.durkinliam.midnitetest.domain.CustomerRecord
-import com.durkinliam.midnitetest.domain.EventRequestBody
+import com.durkinliam.midnitetest.domain.customer.CustomerEvent
+import com.durkinliam.midnitetest.domain.customer.CustomerRecord
+import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
 import org.springframework.stereotype.Component
 
 @Component

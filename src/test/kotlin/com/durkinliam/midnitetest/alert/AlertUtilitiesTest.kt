@@ -3,8 +3,8 @@ package com.durkinliam.midnitetest.alert
 import com.durkinliam.midnitetest.alert.AlertUtilities.accumulationOverATimePeriod
 import com.durkinliam.midnitetest.alert.AlertUtilities.isMoreThanThreshold
 import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
-import com.durkinliam.midnitetest.domain.CustomerEvent
-import com.durkinliam.midnitetest.domain.EventType.DEPOSIT
+import com.durkinliam.midnitetest.domain.customer.CustomerEvent
+import com.durkinliam.midnitetest.domain.event.request.EventType.DEPOSIT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

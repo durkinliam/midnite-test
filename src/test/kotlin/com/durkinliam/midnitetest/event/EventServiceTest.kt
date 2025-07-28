@@ -1,17 +1,21 @@
 package com.durkinliam.midnitetest.event
 
 import com.durkinliam.midnitetest.LocalCache
-import com.durkinliam.midnitetest.alert.AlertUtilities
+import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
 import com.durkinliam.midnitetest.alert.DepositAlertService
 import com.durkinliam.midnitetest.alert.WithdrawalAlertService
-import com.durkinliam.midnitetest.domain.EventRequestBody
-import com.durkinliam.midnitetest.domain.EventType
+import com.durkinliam.midnitetest.domain.customer.CustomerEvent
+import com.durkinliam.midnitetest.domain.customer.CustomerRecord
+import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
+import com.durkinliam.midnitetest.domain.event.request.EventRequestTimestampNotLaterThanLatestRecordException
+import com.durkinliam.midnitetest.domain.event.request.EventType
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.random.Random
 
 class EventServiceTest {
@@ -25,8 +29,8 @@ class EventServiceTest {
     )
 
     @Nested
-    inner class WhenARequestOfEventTypeDepositIsReceived{
-        val userId = Random.nextLong()
+    inner class WhenARequestOfEventTypeDepositIsReceived {
+
         val testEventRequestBody = EventRequestBody(
             userId = userId,
             type = EventType.DEPOSIT,
@@ -34,38 +38,149 @@ class EventServiceTest {
             timeRequestReceivedInMillis = Random.nextLong()
         )
 
-        @BeforeEach
-        fun setUp() {
-            every { cache.upsertRecord(testEventRequestBody) } returns Unit
-            every { depositAlertService.handleDeposit(testEventRequestBody) } returns AlertUtilities.noAlertResponse(userId)
+        @Nested
+        inner class AndTheUserDoesNotExistInTheCache {
+
+            @BeforeEach
+            fun setUp() {
+                every { cache.localCache[userId] } returns null
+                every { cache.upsertRecord(any()) } returns Unit
+            }
+
+            @Test
+            fun `should upsert the new CustomerEvent `() {
+
+                every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
+            }
+
+            @Test
+            fun `should call the DepositAlertService handle function `() {
+
+                every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 1) { depositAlertService.handle(any()) }
+            }
+
+            @Test
+            fun `should not call the WithdrawalAlertService handle function `() {
+
+                every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 0) { withdrawalAlertService.handle(any()) }
+            }
         }
 
-        @Test
-        fun `should call upsertRecord on cache when an event request is handled`() {
-            eventService.handleEventRequest(testEventRequestBody)
+        @Nested
+        inner class AndTheUserExistsInTheCache {
 
-            verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
-        }
+            @Nested
+            inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
+                            )
+                        )
+                    )
+                }
 
-        @Test
-        fun `should call depositAlertService`() {
-            eventService.handleEventRequest(testEventRequestBody)
+                @Test
+                fun `should throw an EventRequestTimestampNotLaterThanLatestRecordException`() {
+                    assertThrows<EventRequestTimestampNotLaterThanLatestRecordException> {
+                        eventService.handleEventRequest(testEventRequestBody)
+                    }
+                }
+            }
 
-            verify(exactly = 1) { depositAlertService.handleDeposit(testEventRequestBody) }
-        }
+            @Nested
+            inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount + 1.00,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis
+                            )
+                        )
+                    )
+                }
 
-        @Test
-        fun `should not call withdrawalAlertService`() {
-            eventService.handleEventRequest(testEventRequestBody)
+                @Test
+                fun `should throw an EventRequestTimestampNotLaterThanLatestRecordException`() {
+                    assertThrows<EventRequestTimestampNotLaterThanLatestRecordException> {
+                        eventService.handleEventRequest(testEventRequestBody)
+                    }
+                }
+            }
 
-            verify(exactly = 0) { withdrawalAlertService.handleWithdrawal(testEventRequestBody) }
+            @Nested
+            inner class WithATimestampLaterThanTheLatestCacheTimestampForTheGivenUser {
+
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
+                            )
+                        )
+                    )
+
+                    every { cache.upsertRecord(any()) } returns Unit
+                }
+
+                @Test
+                fun `should upsert the new CustomerEvent `() {
+                    every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
+                    verify(exactly = 1) { depositAlertService.handle(any()) }
+                }
+
+                @Test
+                fun `should call the DepositAlertService handle function `() {
+
+                    every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 1) { depositAlertService.handle(any()) }
+                }
+
+                @Test
+                fun `should not call the WithdrawalAlertService handle function `() {
+
+                    every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 0) { withdrawalAlertService.handle(any()) }
+                }
+            }
         }
     }
 
     @Nested
-    inner class WhenARequestOfEventTypeWithdrawalIsReceived{
+    inner class WhenARequestOfEventTypeWithdrawalIsReceived {
 
-        val userId = Random.nextLong()
         val testEventRequestBody = EventRequestBody(
             userId = userId,
             type = EventType.WITHDRAWAL,
@@ -73,31 +188,146 @@ class EventServiceTest {
             timeRequestReceivedInMillis = Random.nextLong()
         )
 
-        @BeforeEach
-        fun setUp() {
-            every { cache.upsertRecord(testEventRequestBody) } returns Unit
-            every { withdrawalAlertService.handleWithdrawal(testEventRequestBody) } returns AlertUtilities.noAlertResponse(userId)
+        @Nested
+        inner class AndTheUserDoesNotExistInTheCache {
+
+            @BeforeEach
+            fun setUp() {
+                every { cache.localCache[userId] } returns null
+                every { cache.upsertRecord(any()) } returns Unit
+            }
+
+            @Test
+            fun `should upsert the new CustomerEvent `() {
+
+                every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
+            }
+
+            @Test
+            fun `should call the WithdrawalAlertService handle function `() {
+
+                every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 1) { withdrawalAlertService.handle(any()) }
+            }
+
+            @Test
+            fun `should not call the DepositAlertService handle function `() {
+
+                every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                eventService.handleEventRequest(testEventRequestBody)
+
+                verify(exactly = 0) { depositAlertService.handle(any()) }
+            }
         }
 
-        @Test
-        fun `should call upsertRecord on cache when an event request is handled`() {
-            eventService.handleEventRequest(testEventRequestBody)
+        @Nested
+        inner class AndTheUserExistsInTheCache {
 
-            verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
+            @Nested
+            inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
+                            )
+                        )
+                    )
+                }
+
+                @Test
+                fun `should throw an EventRequestTimestampNotLaterThanLatestRecordException`() {
+                    assertThrows<EventRequestTimestampNotLaterThanLatestRecordException> {
+                        eventService.handleEventRequest(testEventRequestBody)
+                    }
+                }
+            }
+
+            @Nested
+            inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount + 1.00,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis
+                            )
+                        )
+                    )
+                }
+
+                @Test
+                fun `should throw an EventRequestTimestampNotLaterThanLatestRecordException`() {
+                    assertThrows<EventRequestTimestampNotLaterThanLatestRecordException> {
+                        eventService.handleEventRequest(testEventRequestBody)
+                    }
+                }
+            }
+
+            @Nested
+            inner class WithATimestampLaterThanTheLatestCacheTimestampForTheGivenUser {
+
+                @BeforeEach
+                fun setUp() {
+                    every { cache.localCache[userId] } returns CustomerRecord(
+                        setOf(
+                            CustomerEvent(
+                                type = testEventRequestBody.type,
+                                amount = testEventRequestBody.amount,
+                                timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
+                            )
+                        )
+                    )
+
+                    every { cache.upsertRecord(any()) } returns Unit
+                }
+
+                @Test
+                fun `should upsert the new CustomerEvent `() {
+                    every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 1) { cache.upsertRecord(testEventRequestBody) }
+                }
+
+                @Test
+                fun `should call the WithdrawalAlertService handle function `() {
+
+                    every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 1) { withdrawalAlertService.handle(any()) }
+                }
+
+                @Test
+                fun `should not call the DepositAlertService handle function `() {
+
+                    every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
+
+                    eventService.handleEventRequest(testEventRequestBody)
+
+                    verify(exactly = 0) { depositAlertService.handle(any()) }
+                }
+            }
         }
+    }
 
-        @Test
-        fun `should call withdrawalAlertService`() {
-            eventService.handleEventRequest(testEventRequestBody)
-
-            verify(exactly = 1) { withdrawalAlertService.handleWithdrawal(testEventRequestBody) }
-        }
-
-        @Test
-        fun `should not call depositAlertService`() {
-            eventService.handleEventRequest(testEventRequestBody)
-
-            verify(exactly = 0) { depositAlertService.handleDeposit(testEventRequestBody) }
-        }
+    private companion object {
+        private val userId = Random.nextLong()
     }
 }

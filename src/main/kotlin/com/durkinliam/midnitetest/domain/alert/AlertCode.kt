@@ -1,4 +1,4 @@
-package com.durkinliam.midnitetest.domain
+package com.durkinliam.midnitetest.domain.alert
 
 import kotlinx.serialization.Serializable
 

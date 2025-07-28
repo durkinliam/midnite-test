@@ -6,33 +6,30 @@ import com.durkinliam.midnitetest.LocalCache
 import com.durkinliam.midnitetest.alert.AlertUtilities.THIRTY_SECONDS_IN_MILLIS
 import com.durkinliam.midnitetest.alert.AlertUtilities.TWO_HUNDRED
 import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
-import com.durkinliam.midnitetest.domain.AlertCode.ACCUMULATIVE_DEPOSIT_AMOUNT_OVER_TWO_HUNDRED_WITHIN_THIRTY_SECONDS
-import com.durkinliam.midnitetest.domain.AlertCode.THREE_CONSECUTIVE_INCREASING_DEPOSITS
-import com.durkinliam.midnitetest.domain.CustomerEvent
-import com.durkinliam.midnitetest.domain.EventRequestBody
-import com.durkinliam.midnitetest.domain.EventResponseBody
-import com.durkinliam.midnitetest.domain.EventType.DEPOSIT
+import com.durkinliam.midnitetest.domain.alert.AlertCode.ACCUMULATIVE_DEPOSIT_AMOUNT_OVER_TWO_HUNDRED_WITHIN_THIRTY_SECONDS
+import com.durkinliam.midnitetest.domain.alert.AlertCode.THREE_CONSECUTIVE_INCREASING_DEPOSITS
+import com.durkinliam.midnitetest.domain.customer.CustomerEvent
+import com.durkinliam.midnitetest.domain.event.response.EventAlertResponse
+import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
+import com.durkinliam.midnitetest.domain.event.response.SuccessfulEventAlertResponse
+import com.durkinliam.midnitetest.domain.event.request.EventType.DEPOSIT
 import org.springframework.stereotype.Service
 
 @Service
 class DepositAlertService(
     private val cache: LocalCache,
 ) {
-    fun handleDeposit(eventRequestBody: EventRequestBody): EventResponseBody {
+    fun handle(eventRequestBody: EventRequestBody): EventAlertResponse {
         val alertCodes = mutableSetOf<Int>()
         val userId = eventRequestBody.userId
-        val customerEvents = cache.localCache[userId]!!.customerEvents.filter { it.type == DEPOSIT }
-            .sortedBy { it.timestamp }
+        val customerDepositEvents =
+            cache.localCache[userId]!!.customerEvents.filter { it.type == DEPOSIT }.sortedBy { it.timestamp }
 
-        // Early return to avoid unnecessary processing if there's not enough deposits to evaluate
-        if (customerEvents.filter { it.type == DEPOSIT }.size < 3) return noAlertResponse(
-            userId
-        )
+        if (customerDepositEvents.size < 3) return noAlertResponse(userId)
 
-        val lastThreeDeposits = customerEvents.takeLast(3)
-        val accumulatedDeposits = customerEvents.accumulationOverATimePeriod(THIRTY_SECONDS_IN_MILLIS)
+        val lastThreeDeposits = customerDepositEvents.takeLast(3)
+        val accumulatedDeposits = customerDepositEvents.accumulationOverATimePeriod(THIRTY_SECONDS_IN_MILLIS)
 
-        // Check if the last three deposits are increasing and if the accumulated deposits exceed the threshold
         if (!lastThreeDeposits.areLastThreeDepositsIncreasing() && !accumulatedDeposits.isMoreThanThreshold(TWO_HUNDRED)) return noAlertResponse(
             userId
         )
@@ -42,8 +39,8 @@ class DepositAlertService(
             ACCUMULATIVE_DEPOSIT_AMOUNT_OVER_TWO_HUNDRED_WITHIN_THIRTY_SECONDS.code
         )
 
-        return EventResponseBody(
-            alert = true,
+        return SuccessfulEventAlertResponse(
+            alert = alertCodes.isNotEmpty(),
             alertCodes = alertCodes.toSet(),
             userId = userId
         )
