@@ -2,7 +2,7 @@ package com.durkinliam.midnitetest.alert
 
 import com.durkinliam.midnitetest.alert.AlertUtilities.accumulationOverATimePeriod
 import com.durkinliam.midnitetest.alert.AlertUtilities.isMoreThanThreshold
-import com.durkinliam.midnitetest.LocalCache
+import com.durkinliam.midnitetest.InMemoryStorage
 import com.durkinliam.midnitetest.alert.AlertUtilities.THIRTY_SECONDS_IN_MILLIS
 import com.durkinliam.midnitetest.alert.AlertUtilities.TWO_HUNDRED
 import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
@@ -17,13 +17,14 @@ import org.springframework.stereotype.Service
 
 @Service
 class DepositAlertService(
-    private val cache: LocalCache,
+    private val cache: InMemoryStorage,
 ) {
     fun handle(eventRequestBody: EventRequestBody): EventAlertResponse {
         val alertCodes = mutableSetOf<Int>()
         val userId = eventRequestBody.userId
+        // This will always be non-null as the cache is populated before this service is called.
         val customerDepositEvents =
-            cache.localCache[userId]!!.customerEvents.filter { it.type == DEPOSIT }.sortedBy { it.timestamp }
+            cache.cache[userId]!!.customerEvents.filter { it.type == DEPOSIT }.sortedBy { it.timestamp }
 
         if (customerDepositEvents.size < 3) return noAlertResponse(userId)
 

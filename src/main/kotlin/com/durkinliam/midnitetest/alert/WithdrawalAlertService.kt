@@ -1,7 +1,7 @@
 package com.durkinliam.midnitetest.alert
 
 import com.durkinliam.midnitetest.alert.AlertUtilities.isMoreThanThreshold
-import com.durkinliam.midnitetest.LocalCache
+import com.durkinliam.midnitetest.InMemoryStorage
 import com.durkinliam.midnitetest.alert.AlertUtilities.ONE_HUNDRED
 import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
 import com.durkinliam.midnitetest.domain.alert.AlertCode.THREE_CONSECUTIVE_WITHDRAWALS
@@ -15,12 +15,13 @@ import org.springframework.stereotype.Service
 
 @Service
 class WithdrawalAlertService(
-    private val cache: LocalCache,
+    private val cache: InMemoryStorage,
 ) {
     fun handle(eventRequestBody: EventRequestBody): EventAlertResponse {
         val alertCodes = mutableSetOf<Int>()
         val userId = eventRequestBody.userId
-        val customerEvents = cache.localCache[userId]!!.customerEvents.sortedBy { it.timestamp }
+        // This will always be non-null as the cache is populated before this service is called.
+        val customerEvents = cache.cache[userId]!!.customerEvents.sortedBy { it.timestamp }
         val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(ONE_HUNDRED)
 
         if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return noAlertResponse(userId)

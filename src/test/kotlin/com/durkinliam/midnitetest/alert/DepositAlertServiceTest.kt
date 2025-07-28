@@ -1,6 +1,6 @@
 package com.durkinliam.midnitetest.alert
 
-import com.durkinliam.midnitetest.LocalCache
+import com.durkinliam.midnitetest.InMemoryStorage
 import com.durkinliam.midnitetest.domain.customer.CustomerEvent
 import com.durkinliam.midnitetest.domain.customer.CustomerRecord
 import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 
 class DepositAlertServiceTest {
 
-    private val cache = mockk<LocalCache>(relaxed = true)
+    private val cache = mockk<InMemoryStorage>(relaxed = true)
     private val depositAlertService = DepositAlertService(cache)
 
     val eventRequestBody = EventRequestBody(
@@ -37,7 +37,7 @@ class DepositAlertServiceTest {
 
         @BeforeEach
         fun setUp() {
-            every { cache.localCache[eventRequestBody.userId] } returns CustomerRecord(
+            every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
                 customerEvents = setOf(
                     CustomerEvent(
                         type = DEPOSIT,
@@ -70,7 +70,7 @@ class DepositAlertServiceTest {
 
             @Test
             fun `and the last 3 deposits are not increasing, should return SuccessfulEventAlertResponse with no alerts`() {
-                every { cache.localCache[eventRequestBody.userId] } returns CustomerRecord(
+                every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
                     customerEvents = setOf(
                         CustomerEvent(
                             type = DEPOSIT,
@@ -108,7 +108,7 @@ class DepositAlertServiceTest {
 
             @Test
             fun `and the last 3 deposits are increasing, should return SuccessfulEventAlertResponse with an AlertCode of 300`() {
-                every { cache.localCache[eventRequestBody.userId] } returns CustomerRecord(
+                every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
                     customerEvents = setOf(
                         CustomerEvent(
                             type = DEPOSIT,
@@ -145,7 +145,7 @@ class DepositAlertServiceTest {
         inner class AndTheLast3DepositsAreNotIncreasing{
             @Test
             fun `and the accumulated sum of deposits within the last 30 seconds is more than 200, should return SuccessfulEventAlertResponse with an AlertCode of 123`() {
-                every { cache.localCache[eventRequestBody.userId] } returns CustomerRecord(
+                every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
                     customerEvents = setOf(
                         CustomerEvent(
                             type = DEPOSIT,
@@ -180,7 +180,7 @@ class DepositAlertServiceTest {
 
         @Test
         fun `should return a SuccessfulEventAlertResponse with AlertCodes of 123 and 300 when both conditions are met`() {
-            every { cache.localCache[eventRequestBody.userId] } returns CustomerRecord(
+            every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
                 customerEvents = setOf(
                     CustomerEvent(
                         type = DEPOSIT,

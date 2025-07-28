@@ -11,11 +11,11 @@ import org.junit.jupiter.api.assertNotNull
 
 class LocalCacheTest {
 
-    private lateinit var cache: LocalCache
+    private lateinit var cache: InMemoryStorage
 
     @BeforeEach
     fun setUp() {
-        cache = LocalCache()
+        cache = InMemoryStorage()
     }
 
     val eventRequestBody = EventRequestBody(
@@ -29,14 +29,14 @@ class LocalCacheTest {
     fun `upsertRecord creates a new entry into the cache if the userId isn't already present`(){
         cache.upsertRecord(eventRequestBody)
 
-        val customerRecord = cache.localCache[eventRequestBody.userId]
+        val customerRecord = cache.cache[eventRequestBody.userId]
         assertNotNull(customerRecord)
         assertEquals(1, customerRecord.customerEvents.size)
     }
 
     @Test
     fun `upsertRecord adds a new CustomerEvent into an existing userId's CustomerRecord entry`(){
-        cache.localCache[eventRequestBody.userId] = CustomerRecord(
+        cache.cache[eventRequestBody.userId] = CustomerRecord(
             customerEvents = setOf(
                 CustomerEvent(
                     type = DEPOSIT,
@@ -48,7 +48,7 @@ class LocalCacheTest {
 
         cache.upsertRecord(eventRequestBody)
 
-        val customerRecord = cache.localCache[eventRequestBody.userId]
+        val customerRecord = cache.cache[eventRequestBody.userId]
         assertNotNull(customerRecord)
         assertEquals(2, customerRecord.customerEvents.size)
         assertEquals(

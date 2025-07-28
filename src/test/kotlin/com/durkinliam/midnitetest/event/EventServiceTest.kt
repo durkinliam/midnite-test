@@ -1,6 +1,6 @@
 package com.durkinliam.midnitetest.event
 
-import com.durkinliam.midnitetest.LocalCache
+import com.durkinliam.midnitetest.InMemoryStorage
 import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
 import com.durkinliam.midnitetest.alert.DepositAlertService
 import com.durkinliam.midnitetest.alert.WithdrawalAlertService
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.random.Random
 
 class EventServiceTest {
-    private val cache = mockk<LocalCache>(relaxed = true)
+    private val cache = mockk<InMemoryStorage>(relaxed = true)
     private val depositAlertService = mockk<DepositAlertService>()
     private val withdrawalAlertService = mockk<WithdrawalAlertService>()
     private val eventService = EventService(
@@ -43,7 +43,7 @@ class EventServiceTest {
 
             @BeforeEach
             fun setUp() {
-                every { cache.localCache[userId] } returns null
+                every { cache.cache[userId] } returns null
                 every { cache.upsertRecord(any()) } returns Unit
             }
 
@@ -85,7 +85,7 @@ class EventServiceTest {
             inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
@@ -108,7 +108,7 @@ class EventServiceTest {
             inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
@@ -132,7 +132,7 @@ class EventServiceTest {
 
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
@@ -193,7 +193,7 @@ class EventServiceTest {
 
             @BeforeEach
             fun setUp() {
-                every { cache.localCache[userId] } returns null
+                every { cache.cache[userId] } returns null
                 every { cache.upsertRecord(any()) } returns Unit
             }
 
@@ -235,7 +235,7 @@ class EventServiceTest {
             inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
@@ -258,7 +258,7 @@ class EventServiceTest {
             inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,
@@ -282,7 +282,7 @@ class EventServiceTest {
 
                 @BeforeEach
                 fun setUp() {
-                    every { cache.localCache[userId] } returns CustomerRecord(
+                    every { cache.cache[userId] } returns CustomerRecord(
                         setOf(
                             CustomerEvent(
                                 type = testEventRequestBody.type,

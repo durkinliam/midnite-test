@@ -6,8 +6,8 @@ import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
 import org.springframework.stereotype.Component
 
 @Component
-class LocalCache {
-    val localCache = HashMap<Long, CustomerRecord>()
+class InMemoryStorage {
+    val cache = HashMap<Long, CustomerRecord>()
 
     fun upsertRecord(eventRequestBody: EventRequestBody) {
         val userId = eventRequestBody.userId
@@ -29,18 +29,18 @@ class LocalCache {
 
     @Synchronized
     private fun getExistingRecordIfPresent(userId: Long): CustomerRecord? {
-        return localCache[userId]
+        return cache[userId]
     }
 
     @Synchronized
     private fun createNewRecord(userId: Long, customerRecord: CustomerRecord) =
-        localCache.put(userId, customerRecord)
+        cache.put(userId, customerRecord)
 
     @Synchronized
     private fun updateRecord(userId: Long, existingRecord: CustomerRecord, newEvent: CustomerEvent) {
         val existingEvents = existingRecord.customerEvents
 
-        localCache[userId] = CustomerRecord(
+        cache[userId] = CustomerRecord(
             customerEvents = existingEvents + newEvent
         )
     }
