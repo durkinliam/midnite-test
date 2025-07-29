@@ -150,17 +150,17 @@ class DepositAlertServiceTest {
                         CustomerEvent(
                             type = DEPOSIT,
                             amount = eventRequestBody.amount.toDouble() + 150.00,
-                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 2
+                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 3
                         ),
                         CustomerEvent(
                             type = DEPOSIT,
                             amount = eventRequestBody.amount.toDouble() + 75.00,
-                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
+                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 2
                         ),
                         CustomerEvent(
                             type = DEPOSIT,
                             amount = eventRequestBody.amount.toDouble() + 50.00,
-                            timestamp = eventRequestBody.timeRequestReceivedInMillis
+                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
                         ),
                     )
                 )

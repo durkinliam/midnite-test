@@ -7,7 +7,7 @@ import com.durkinliam.midnitetest.alert.WithdrawalAlertService
 import com.durkinliam.midnitetest.domain.customer.CustomerEvent
 import com.durkinliam.midnitetest.domain.customer.CustomerRecord
 import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
-import com.durkinliam.midnitetest.domain.event.request.EventRequestTimestampNotLaterThanLatestRecordException
+import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
 import com.durkinliam.midnitetest.domain.event.request.EventType
 import io.mockk.every
 import io.mockk.mockk

@@ -1,0 +1,6 @@
+{
+  "type": "deposit",
+  "amount": "20.00",
+  "user_id": 1,
+  "t": 10000
+}

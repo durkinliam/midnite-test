@@ -5,7 +5,7 @@ import com.durkinliam.midnitetest.alert.DepositAlertService
 import com.durkinliam.midnitetest.alert.WithdrawalAlertService
 import com.durkinliam.midnitetest.domain.event.response.EventAlertResponse
 import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
-import com.durkinliam.midnitetest.domain.event.request.EventRequestTimestampNotLaterThanLatestRecordException
+import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
 import com.durkinliam.midnitetest.domain.event.request.EventType.DEPOSIT
 import com.durkinliam.midnitetest.domain.event.request.EventType.WITHDRAWAL
 import org.springframework.stereotype.Service

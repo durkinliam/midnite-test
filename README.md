@@ -167,27 +167,19 @@ The application will start on port 1234, and you can access the endpoint at `htt
 ### Running The Application Locally
 
 To run the application locally, you need to have Java 21+ installed on your machine along with Gradle 8.0+.
-You can run the application using the following command:
-
-```
-  ./gradlew bootRun
-```
+You can run the application using the following command:```./gradlew bootRun```
 
 ### Running The Application via Docker Desktop
 
 Alternatively, if you prefer not to install Java and Gradle onto your machine, you can run the application using [Docker
 Desktop](https://www.docker.com/products/docker-desktop/). Though, please ensure you have Docker installed and running
 on your machine.
-You can run the application using the following command:
+You can run the application using the following command:```./deploy.sh```
 
-```
-  deploy.sh
-```
+After you have finished, you should stop the remove the container in your Docker Desktop. This can be done after you
+have already exited the application, or if the application is still running, and you wish to exit and stop in one
+command. To do this run: ```./tear-down.sh```
 
 ## Tests
 
-In order to run the tests, you can run the following command:
-
-```
-  ./gradlew clean test
-```
+In order to run the tests, you can run the following command:```./gradlew clean test```

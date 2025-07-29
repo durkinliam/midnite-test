@@ -22,12 +22,13 @@ class WithdrawalAlertService(
         val userId = eventRequestBody.userId
         // This will always be non-null as the cache is populated before this service is called.
         val customerEvents = cache.cache[userId]!!.customerEvents.sortedBy { it.timestamp }
+
         val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(ONE_HUNDRED)
 
         if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return noAlertResponse(userId)
 
         if (doesWithdrawalExceedThreshold) alertCodes.add(WITHDRAWAL_OVER_ONE_HUNDRED.code)
-        if (customerEvents.areLastThreeEventsAllWithdrawals()) alertCodes.add(THREE_CONSECUTIVE_WITHDRAWALS.code)
+        if (customerEvents.size >= 3 && customerEvents.areLastThreeEventsAllWithdrawals()) alertCodes.add(THREE_CONSECUTIVE_WITHDRAWALS.code)
 
         return SuccessfulEventAlertResponse(
             alert = alertCodes.isNotEmpty(),
