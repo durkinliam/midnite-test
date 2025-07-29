@@ -1,4 +1,4 @@
-package com.durkinliam.midnitetest.domain
+package com.durkinliam.midnitetest.domain.event.request
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

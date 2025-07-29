@@ -1,4 +1,4 @@
-package com.durkinliam.midnitetest.domain
+package com.durkinliam.midnitetest.domain.customer
 
 import kotlinx.serialization.Serializable
 

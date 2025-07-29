@@ -1,39 +1,45 @@
 package com.durkinliam.midnitetest.alert
 
+import com.durkinliam.midnitetest.InMemoryStorage
+import com.durkinliam.midnitetest.alert.AlertUtilities.ONE_HUNDRED
 import com.durkinliam.midnitetest.alert.AlertUtilities.isMoreThanThreshold
-import com.durkinliam.midnitetest.LocalCache
-import com.durkinliam.midnitetest.domain.AlertCode
-import com.durkinliam.midnitetest.domain.CustomerEvent
-import com.durkinliam.midnitetest.domain.EventRequestBody
-import com.durkinliam.midnitetest.domain.EventResponseBody
-import com.durkinliam.midnitetest.domain.EventType
+import com.durkinliam.midnitetest.alert.AlertUtilities.noAlertResponse
+import com.durkinliam.midnitetest.domain.alert.AlertCode.THREE_CONSECUTIVE_WITHDRAWALS
+import com.durkinliam.midnitetest.domain.alert.AlertCode.WITHDRAWAL_OVER_ONE_HUNDRED
+import com.durkinliam.midnitetest.domain.customer.CustomerEvent
+import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
+import com.durkinliam.midnitetest.domain.event.request.EventType
+import com.durkinliam.midnitetest.domain.event.response.EventAlertResponse
+import com.durkinliam.midnitetest.domain.event.response.SuccessfulEventAlertResponse
 import org.springframework.stereotype.Service
 
 @Service
 class WithdrawalAlertService(
-    private val cache: LocalCache,
+    private val cache: InMemoryStorage,
 ) {
-    fun handleWithdrawal(eventRequestBody: EventRequestBody): EventResponseBody {
+    fun handle(eventRequestBody: EventRequestBody): EventAlertResponse {
         val alertCodes = mutableSetOf<Int>()
         val userId = eventRequestBody.userId
-        val customerEvents = cache.localCache[userId]!!.customerEvents.sortedBy { it.timestamp }
+        // This will always be non-null as the cache is populated before this service is called.
+        val customerEvents = cache.cache[userId]!!.customerEvents.sortedBy { it.timestamp }
 
-        val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(AlertUtilities.ONE_HUNDRED)
+        val doesWithdrawalExceedThreshold = eventRequestBody.amount.toDouble().isMoreThanThreshold(ONE_HUNDRED)
 
-        if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return AlertUtilities.noAlertResponse(userId)
+        if (customerEvents.size < 3 && !doesWithdrawalExceedThreshold) return noAlertResponse(userId)
 
-        val areLastThreeEventsAllWithdrawals = customerEvents.areLastThreeEventsAllWithdrawals()
+        if (doesWithdrawalExceedThreshold) alertCodes.add(WITHDRAWAL_OVER_ONE_HUNDRED.code)
+        if (customerEvents.size >= 3 &&
+            customerEvents.areLastThreeEventsAllWithdrawals()
+        ) {
+            alertCodes.add(THREE_CONSECUTIVE_WITHDRAWALS.code)
+        }
 
-        if (doesWithdrawalExceedThreshold) alertCodes.add(AlertCode.WITHDRAWAL_OVER_ONE_HUNDRED.code)
-        if (areLastThreeEventsAllWithdrawals) alertCodes.add(AlertCode.THREE_CONSECUTIVE_WITHDRAWALS.code)
-
-        return EventResponseBody(
-            alert = true,
-            alertCodes = alertCodes.toSet(),
-            userId = userId
+        return SuccessfulEventAlertResponse(
+            alert = alertCodes.isNotEmpty(),
+            alert_codes = alertCodes.toSet(),
+            user_id = userId,
         )
     }
 
-    private fun List<CustomerEvent>.areLastThreeEventsAllWithdrawals() =
-        this.takeLast(3).all { it.type == EventType.WITHDRAWAL }
+    private fun List<CustomerEvent>.areLastThreeEventsAllWithdrawals() = this.takeLast(3).all { it.type == EventType.WITHDRAWAL }
 }
