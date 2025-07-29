@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class EventExceptionHandler {
-
     @ExceptionHandler(EventRequestTimestampNotLaterThanLatestRecordException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun onEventRequestTimestampEarlierThanLastEvent() = UnsuccessfulEventAlertResponse

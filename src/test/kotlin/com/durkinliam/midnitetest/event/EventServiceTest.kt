@@ -7,8 +7,8 @@ import com.durkinliam.midnitetest.alert.WithdrawalAlertService
 import com.durkinliam.midnitetest.domain.customer.CustomerEvent
 import com.durkinliam.midnitetest.domain.customer.CustomerRecord
 import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
-import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
 import com.durkinliam.midnitetest.domain.event.request.EventType
+import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -22,25 +22,25 @@ class EventServiceTest {
     private val cache = mockk<InMemoryStorage>(relaxed = true)
     private val depositAlertService = mockk<DepositAlertService>()
     private val withdrawalAlertService = mockk<WithdrawalAlertService>()
-    private val eventService = EventService(
-        cache = cache,
-        depositAlertService = depositAlertService,
-        withdrawalAlertService = withdrawalAlertService
-    )
+    private val eventService =
+        EventService(
+            cache = cache,
+            depositAlertService = depositAlertService,
+            withdrawalAlertService = withdrawalAlertService,
+        )
 
     @Nested
     inner class WhenARequestOfEventTypeDepositIsReceived {
-
-        val testEventRequestBody = EventRequestBody(
-            userId = userId,
-            type = EventType.DEPOSIT,
-            amount = Random.nextDouble().toString(),
-            timeRequestReceivedInMillis = Random.nextLong()
-        )
+        val testEventRequestBody =
+            EventRequestBody(
+                userId = userId,
+                type = EventType.DEPOSIT,
+                amount = Random.nextDouble().toString(),
+                timeRequestReceivedInMillis = Random.nextLong(),
+            )
 
         @Nested
         inner class AndTheUserDoesNotExistInTheCache {
-
             @BeforeEach
             fun setUp() {
                 every { cache.cache[userId] } returns null
@@ -49,7 +49,6 @@ class EventServiceTest {
 
             @Test
             fun `should upsert the new CustomerEvent `() {
-
                 every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -59,7 +58,6 @@ class EventServiceTest {
 
             @Test
             fun `should call the DepositAlertService handle function `() {
-
                 every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -69,7 +67,6 @@ class EventServiceTest {
 
             @Test
             fun `should not call the WithdrawalAlertService handle function `() {
-
                 every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -80,20 +77,20 @@ class EventServiceTest {
 
         @Nested
         inner class AndTheUserExistsInTheCache {
-
             @Nested
             inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble(),
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble(),
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1,
+                                ),
+                            ),
                         )
-                    )
                 }
 
                 @Test
@@ -108,15 +105,16 @@ class EventServiceTest {
             inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble() + 1.00,
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble() + 1.00,
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis,
+                                ),
+                            ),
                         )
-                    )
                 }
 
                 @Test
@@ -129,18 +127,18 @@ class EventServiceTest {
 
             @Nested
             inner class WithATimestampLaterThanTheLatestCacheTimestampForTheGivenUser {
-
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble(),
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble(),
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1,
+                                ),
+                            ),
                         )
-                    )
 
                     every { cache.upsertRecord(any()) } returns Unit
                 }
@@ -157,7 +155,6 @@ class EventServiceTest {
 
                 @Test
                 fun `should call the DepositAlertService handle function `() {
-
                     every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
 
                     eventService.handleEventRequest(testEventRequestBody)
@@ -167,7 +164,6 @@ class EventServiceTest {
 
                 @Test
                 fun `should not call the WithdrawalAlertService handle function `() {
-
                     every { depositAlertService.handle(any()) } returns noAlertResponse(userId)
 
                     eventService.handleEventRequest(testEventRequestBody)
@@ -180,17 +176,16 @@ class EventServiceTest {
 
     @Nested
     inner class WhenARequestOfEventTypeWithdrawalIsReceived {
-
-        val testEventRequestBody = EventRequestBody(
-            userId = userId,
-            type = EventType.WITHDRAWAL,
-            amount = Random.nextDouble().toString(),
-            timeRequestReceivedInMillis = Random.nextLong()
-        )
+        val testEventRequestBody =
+            EventRequestBody(
+                userId = userId,
+                type = EventType.WITHDRAWAL,
+                amount = Random.nextDouble().toString(),
+                timeRequestReceivedInMillis = Random.nextLong(),
+            )
 
         @Nested
         inner class AndTheUserDoesNotExistInTheCache {
-
             @BeforeEach
             fun setUp() {
                 every { cache.cache[userId] } returns null
@@ -199,7 +194,6 @@ class EventServiceTest {
 
             @Test
             fun `should upsert the new CustomerEvent `() {
-
                 every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -209,7 +203,6 @@ class EventServiceTest {
 
             @Test
             fun `should call the WithdrawalAlertService handle function `() {
-
                 every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -219,7 +212,6 @@ class EventServiceTest {
 
             @Test
             fun `should not call the DepositAlertService handle function `() {
-
                 every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
 
                 eventService.handleEventRequest(testEventRequestBody)
@@ -230,20 +222,20 @@ class EventServiceTest {
 
         @Nested
         inner class AndTheUserExistsInTheCache {
-
             @Nested
             inner class WithATimestampBeforeTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble(),
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble(),
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis + 1,
+                                ),
+                            ),
                         )
-                    )
                 }
 
                 @Test
@@ -258,15 +250,16 @@ class EventServiceTest {
             inner class WithATimestampEqualToTheLatestCacheTimestampForTheGivenUser {
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble() + 1.00,
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble() + 1.00,
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis,
+                                ),
+                            ),
                         )
-                    )
                 }
 
                 @Test
@@ -279,18 +272,18 @@ class EventServiceTest {
 
             @Nested
             inner class WithATimestampLaterThanTheLatestCacheTimestampForTheGivenUser {
-
                 @BeforeEach
                 fun setUp() {
-                    every { cache.cache[userId] } returns CustomerRecord(
-                        setOf(
-                            CustomerEvent(
-                                type = testEventRequestBody.type,
-                                amount = testEventRequestBody.amount.toDouble(),
-                                timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1
-                            )
+                    every { cache.cache[userId] } returns
+                        CustomerRecord(
+                            setOf(
+                                CustomerEvent(
+                                    type = testEventRequestBody.type,
+                                    amount = testEventRequestBody.amount.toDouble(),
+                                    timestamp = testEventRequestBody.timeRequestReceivedInMillis - 1,
+                                ),
+                            ),
                         )
-                    )
 
                     every { cache.upsertRecord(any()) } returns Unit
                 }
@@ -306,7 +299,6 @@ class EventServiceTest {
 
                 @Test
                 fun `should call the WithdrawalAlertService handle function `() {
-
                     every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
 
                     eventService.handleEventRequest(testEventRequestBody)
@@ -316,7 +308,6 @@ class EventServiceTest {
 
                 @Test
                 fun `should not call the DepositAlertService handle function `() {
-
                     every { withdrawalAlertService.handle(any()) } returns noAlertResponse(userId)
 
                     eventService.handleEventRequest(testEventRequestBody)

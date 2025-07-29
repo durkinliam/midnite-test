@@ -20,30 +20,32 @@ class WithdrawalAlertServiceTest {
     private val cache = mockk<InMemoryStorage>(relaxed = true)
     private val withdrawalAlertService = WithdrawalAlertService(cache)
 
-    val eventRequestBody = EventRequestBody(
-        userId = 123,
-        type = WITHDRAWAL,
-        amount = "10.00",
-        timeRequestReceivedInMillis = 100
-    )
+    val eventRequestBody =
+        EventRequestBody(
+            userId = 123,
+            type = WITHDRAWAL,
+            amount = "10.00",
+            timeRequestReceivedInMillis = 100,
+        )
 
     @BeforeEach
     fun setUp() {
         every { cache.upsertRecord(any()) } returns Unit
     }
 
-
     @Test
     fun `when a user has less than three withdrawals and the new event is not a withdrawal over 100, should return a SuccessfulEventAlertResponse with no alerts`() {
-        every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
-            customerEvents = setOf(
-                CustomerEvent(
-                    type = WITHDRAWAL,
-                    amount = eventRequestBody.amount.toDouble(),
-                    timestamp = eventRequestBody.timeRequestReceivedInMillis
-                )
+        every { cache.cache[eventRequestBody.userId] } returns
+            CustomerRecord(
+                customerEvents =
+                    setOf(
+                        CustomerEvent(
+                            type = WITHDRAWAL,
+                            amount = eventRequestBody.amount.toDouble(),
+                            timestamp = eventRequestBody.timeRequestReceivedInMillis,
+                        ),
+                    ),
             )
-        )
 
         val response = withdrawalAlertService.handle(eventRequestBody)
 
@@ -58,15 +60,17 @@ class WithdrawalAlertServiceTest {
 
     @Test
     fun `when a user has less than three withdrawals and the new event is a withdrawal over 100, should return a SuccessfulEventAlertResponse with an AlertCode of 1100`() {
-        every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
-            customerEvents = setOf(
-                CustomerEvent(
-                    type = WITHDRAWAL,
-                    amount = eventRequestBody.amount.toDouble(),
-                    timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
-                )
+        every { cache.cache[eventRequestBody.userId] } returns
+            CustomerRecord(
+                customerEvents =
+                    setOf(
+                        CustomerEvent(
+                            type = WITHDRAWAL,
+                            amount = eventRequestBody.amount.toDouble(),
+                            timestamp = eventRequestBody.timeRequestReceivedInMillis - 1,
+                        ),
+                    ),
             )
-        )
 
         val response = withdrawalAlertService.handle(eventRequestBody.copy(amount = "110.00"))
 
@@ -82,28 +86,29 @@ class WithdrawalAlertServiceTest {
 
     @Nested
     inner class WhenAUserHasAtLeastThreePreviousEvents {
-
         @Test
         fun `where all three events being withdrawals and the new event is not a withdrawal over 100, should return a SuccessfulEventAlertResponse with an AlertCode of 30`() {
-            every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
-                customerEvents = setOf(
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 3
-                    ),
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 2
-                    ),
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
-                    )
+            every { cache.cache[eventRequestBody.userId] } returns
+                CustomerRecord(
+                    customerEvents =
+                        setOf(
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 3,
+                            ),
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 2,
+                            ),
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 1,
+                            ),
+                        ),
                 )
-            )
 
             val response = withdrawalAlertService.handle(eventRequestBody)
 
@@ -119,25 +124,27 @@ class WithdrawalAlertServiceTest {
 
         @Test
         fun `but not all previous events are withdrawals and the new event is a withdrawal over 100, should return a SuccessfulEventAlertResponse with an AlertCode of 1100`() {
-            every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
-                customerEvents = setOf(
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 3
-                    ),
-                    CustomerEvent(
-                        type = DEPOSIT,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 2
-                    ),
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble() + 100.00,
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
-                    )
+            every { cache.cache[eventRequestBody.userId] } returns
+                CustomerRecord(
+                    customerEvents =
+                        setOf(
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 3,
+                            ),
+                            CustomerEvent(
+                                type = DEPOSIT,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 2,
+                            ),
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble() + 100.00,
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 1,
+                            ),
+                        ),
                 )
-            )
 
             val response = withdrawalAlertService.handle(eventRequestBody.copy(amount = "110.00"))
 
@@ -153,25 +160,27 @@ class WithdrawalAlertServiceTest {
 
         @Test
         fun `where all three events being withdrawals and the new event is a withdrawal over 100, should return a SuccessfulEventAlertResponse with an AlertCodes of 1100 and 30`() {
-            every { cache.cache[eventRequestBody.userId] } returns CustomerRecord(
-                customerEvents = setOf(
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 3
-                    ),
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 2
-                    ),
-                    CustomerEvent(
-                        type = WITHDRAWAL,
-                        amount = eventRequestBody.amount.toDouble(),
-                        timestamp = eventRequestBody.timeRequestReceivedInMillis - 1
-                    )
+            every { cache.cache[eventRequestBody.userId] } returns
+                CustomerRecord(
+                    customerEvents =
+                        setOf(
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 3,
+                            ),
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 2,
+                            ),
+                            CustomerEvent(
+                                type = WITHDRAWAL,
+                                amount = eventRequestBody.amount.toDouble(),
+                                timestamp = eventRequestBody.timeRequestReceivedInMillis - 1,
+                            ),
+                        ),
                 )
-            )
 
             val response = withdrawalAlertService.handle(eventRequestBody.copy(amount = "110.00"))
 

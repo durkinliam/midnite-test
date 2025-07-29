@@ -3,11 +3,11 @@ package com.durkinliam.midnitetest.event
 import com.durkinliam.midnitetest.InMemoryStorage
 import com.durkinliam.midnitetest.alert.DepositAlertService
 import com.durkinliam.midnitetest.alert.WithdrawalAlertService
-import com.durkinliam.midnitetest.domain.event.response.EventAlertResponse
 import com.durkinliam.midnitetest.domain.event.request.EventRequestBody
-import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
 import com.durkinliam.midnitetest.domain.event.request.EventType.DEPOSIT
 import com.durkinliam.midnitetest.domain.event.request.EventType.WITHDRAWAL
+import com.durkinliam.midnitetest.domain.event.request.exception.EventRequestTimestampNotLaterThanLatestRecordException
+import com.durkinliam.midnitetest.domain.event.response.EventAlertResponse
 import org.springframework.stereotype.Service
 
 @Service

@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class MidniteTestApplication
 
 fun main(args: Array<String>) {
-	runApplication<MidniteTestApplication>(*args)
+    runApplication<MidniteTestApplication>(*args)
 }

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 
 class LocalCacheTest {
-
     private lateinit var cache: InMemoryStorage
 
     @BeforeEach
@@ -18,15 +17,16 @@ class LocalCacheTest {
         cache = InMemoryStorage()
     }
 
-    val eventRequestBody = EventRequestBody(
-        userId = 123,
-        type = DEPOSIT,
-        amount = "100.0",
-        timeRequestReceivedInMillis = 1633072800000
-    )
+    val eventRequestBody =
+        EventRequestBody(
+            userId = 123,
+            type = DEPOSIT,
+            amount = "100.0",
+            timeRequestReceivedInMillis = 1633072800000,
+        )
 
     @Test
-    fun `upsertRecord creates a new entry into the cache if the userId isn't already present`(){
+    fun `upsertRecord creates a new entry into the cache if the userId isn't already present`() {
         cache.upsertRecord(eventRequestBody)
 
         val customerRecord = cache.cache[eventRequestBody.userId]
@@ -35,16 +35,18 @@ class LocalCacheTest {
     }
 
     @Test
-    fun `upsertRecord adds a new CustomerEvent into an existing userId's CustomerRecord entry`(){
-        cache.cache[eventRequestBody.userId] = CustomerRecord(
-            customerEvents = setOf(
-                CustomerEvent(
-                    type = DEPOSIT,
-                    amount = 10.00,
-                    timestamp = 1
-                )
+    fun `upsertRecord adds a new CustomerEvent into an existing userId's CustomerRecord entry`() {
+        cache.cache[eventRequestBody.userId] =
+            CustomerRecord(
+                customerEvents =
+                    setOf(
+                        CustomerEvent(
+                            type = DEPOSIT,
+                            amount = 10.00,
+                            timestamp = 1,
+                        ),
+                    ),
             )
-        )
 
         cache.upsertRecord(eventRequestBody)
 
@@ -55,9 +57,9 @@ class LocalCacheTest {
             CustomerEvent(
                 type = DEPOSIT,
                 amount = 100.00,
-                timestamp = eventRequestBody.timeRequestReceivedInMillis
+                timestamp = eventRequestBody.timeRequestReceivedInMillis,
             ),
-            customerRecord.customerEvents.maxByOrNull { it.timestamp }!!
+            customerRecord.customerEvents.maxByOrNull { it.timestamp }!!,
         )
     }
 }

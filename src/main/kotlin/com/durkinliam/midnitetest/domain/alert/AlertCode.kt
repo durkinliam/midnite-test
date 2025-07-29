@@ -3,7 +3,9 @@ package com.durkinliam.midnitetest.domain.alert
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class AlertCode(val code: Int) {
+enum class AlertCode(
+    val code: Int,
+) {
     WITHDRAWAL_OVER_ONE_HUNDRED(1100),
     THREE_CONSECUTIVE_WITHDRAWALS(30),
     THREE_CONSECUTIVE_INCREASING_DEPOSITS(300),

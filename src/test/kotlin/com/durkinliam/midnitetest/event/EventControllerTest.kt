@@ -22,7 +22,6 @@ class EventControllerTest {
 
     @Nested
     inner class AValidRequest {
-
         @BeforeEach
         fun setUp() {
             every { eventService.handleEventRequest(any()) } returns noAlertResponse(userId)
@@ -49,20 +48,23 @@ class EventControllerTest {
 
     @Nested
     inner class AnInvalidRequest {
-
         @Test
         fun `for a request which throws an EventRequestTimestampNotLaterThanLatestRecord exception returns a BadRequest-400 response with an UnsuccessfulEventAlertResponse body`() {
-            every { eventService.handleEventRequest(any()) } throws EventRequestTimestampNotLaterThanLatestRecordException(
-                userId
-            )
+            every { eventService.handleEventRequest(any()) } throws
+                EventRequestTimestampNotLaterThanLatestRecordException(
+                    userId,
+                )
 
             val response =
                 eventController.handleEvent("""{"user_id": $userId, "type": "deposit", "amount": "42.00", "t": 10}""")
 
-            val expectedResponseBody = UnsuccessfulEventAlertResponse(
-                user_id = userId,
-                reason = "Event request timestamp is earlier than the last event for userId: $userId. All events must be increasing in timestamp order and unique per user."
-            )
+            val expectedResponseBody =
+                UnsuccessfulEventAlertResponse(
+                    user_id = userId,
+                    reason =
+                        "Event request timestamp is earlier than the last event for userId: $userId. " +
+                            "All events must be increasing in timestamp order and unique per user.",
+                )
 
             assertEquals(ResponseEntity.badRequest().body(expectedResponseBody).statusCode, response.statusCode)
 
@@ -79,10 +81,13 @@ class EventControllerTest {
             @Test
             fun `returns a BadRequest-400 response with an UnsuccessfulEventAlertResponse`() {
                 val response = eventController.handleEvent("invalid json")
-                val expectedResponseBody = UnsuccessfulEventAlertResponse(
-                    user_id = null,
-                    reason = "Invalid event request made to /event endpoint. Please ensure the request body is valid JSON and matches the expected structure."
-                )
+                val expectedResponseBody =
+                    UnsuccessfulEventAlertResponse(
+                        user_id = null,
+                        reason =
+                            "Invalid event request made to /event endpoint. " +
+                                "Please ensure the request body is valid JSON and matches the expected structure.",
+                    )
 
                 assertEquals(ResponseEntity.badRequest().body(expectedResponseBody).statusCode, response.statusCode)
 
@@ -109,10 +114,11 @@ class EventControllerTest {
 
         val response = eventController.handleEvent(aValidRequestBody("deposit"))
 
-        val expectedResponseBody = UnsuccessfulEventAlertResponse(
-            user_id = userId,
-            reason = "An unexpected error occurred while processing the event request. Please try again later."
-        )
+        val expectedResponseBody =
+            UnsuccessfulEventAlertResponse(
+                user_id = userId,
+                reason = "An unexpected error occurred while processing the event request. Please try again later.",
+            )
 
         assertEquals(ResponseEntity.internalServerError().body(expectedResponseBody).statusCode, response.statusCode)
 
@@ -126,7 +132,7 @@ class EventControllerTest {
 
     private companion object {
         val userId = Random.nextLong()
-        private fun aValidRequestBody(eventType: String) =
-            """{"user_id": $userId, "type": "$eventType", "amount": "42.00", "t": 10}"""
+
+        private fun aValidRequestBody(eventType: String) = """{"user_id": $userId, "type": "$eventType", "amount": "42.00", "t": 10}"""
     }
 }
